@@ -41,7 +41,8 @@ const Header = () => {
               Login
             </Button>
           </SignedOut>
-          <SignedIn>
+          <SignedIn
+          >
                 {user?.unsafeMetadata?.role === "recruiter" &&(
 
                   <Link to="/post-job">
