@@ -1,28 +1,41 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from './button';
 import { SignIn, SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 import { BriefcaseBusiness, Heart, PenBox } from 'lucide-react';
+
 const Header = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const [search, setSearch] = useSearchParams();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (search.get('sign-in') === 'true') {
       setShowSignIn(true);
     }
   }, [search]);
+
+  // Handle redirect after successful sign-in
+  useEffect(() => {
+    if (isLoaded && user && showSignIn) {
+      setShowSignIn(false);
+      setSearch({});
+      navigate('/onboarding');
+    }
+  }, [user, isLoaded, showSignIn, setSearch, navigate]);
+
   const handleoverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       setShowSignIn(false);
       setSearch({})
     }
-
   }
+
   return (
     <>
       <nav className='py-4 flex justify-between items-center'>
-        <Link>
+        <Link to="/">
           <img src="logo.png" alt="logo" className='h-30' />
         </Link>
         <div className='flex gap-8'>
@@ -31,14 +44,13 @@ const Header = () => {
           </SignedOut>
           <SignedIn>
             {user?.unsafeMetadata?.role === "recruiter" && (
-
               <Link to="/post-job">
                 <Button variant="destructive" className="rounded-full">
                   <PenBox size={20} className="mr-2" />
-                  Post a Job</Button>
+                  Post a Job
+                </Button>
               </Link>
-            )
-            }
+            )}
             <UserButton
               appearance={{
                 elements: {
@@ -58,18 +70,18 @@ const Header = () => {
                   href="/saved-jobs"
                 />
               </UserButton.MenuItems>
-
             </UserButton>
           </SignedIn>
         </div>
       </nav>
 
       {showSignIn && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-2 z-50"
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
           onClick={handleoverlayClick}>
-          
-        </div>)}
-    </ >
+          <SignIn />
+        </div>
+      )}
+    </>
   )
 }
 
