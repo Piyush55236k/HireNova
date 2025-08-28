@@ -27,14 +27,15 @@ const LandingPage = () => {
         </p>
       </section>
 
-      <div className='flex gap-6 justify-center'>
-        <Link to='/jobs'>
-          <Button variant='blue' size='xl'>Find Jobs</Button>
-        </Link>
-        <Link to='/post-job'>
-          <Button size='xl' variant='destructive'>Post a Job</Button>
-        </Link>
-      </div>
+      <div className='flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center'>
+  <Link to='/jobs' className='w-full sm:w-auto'>
+    <Button variant='blue' size='xl' className='w-full sm:w-auto'>Find Jobs</Button>
+  </Link>
+  <Link to='/post-job' className='w-full sm:w-auto'>
+    <Button variant='destructive' size='xl' className='w-full sm:w-auto'>Post a Job</Button>
+  </Link>
+</div>
+
 
       <Carousel plugins={[Autoplay({ delay: 2000 })]} className="w-full py-10">
         <CarouselContent className="flex gap-5 sm:gap-20 items-center">
