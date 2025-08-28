@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from './button';
 import {
   SignIn,
@@ -13,26 +13,13 @@ import { BriefcaseBusiness, Heart, PenBox } from 'lucide-react';
 const Header = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const [search, setSearch] = useSearchParams();
-  const { user, isLoaded } = useUser();
-  const navigate = useNavigate();
+  const { user } = useUser();
 
   useEffect(() => {
     if (search.get('sign-in') === 'true') {
       setShowSignIn(true);
     }
   }, [search]);
-
-  // Handle redirect to onboarding after successful sign-in
-  useEffect(() => {
-    if (isLoaded && user && showSignIn) {
-      setShowSignIn(false);
-      setSearch({});
-      // Small delay to ensure state updates
-      setTimeout(() => {
-        navigate('/onboarding');
-      }, 100);
-    }
-  }, [user, isLoaded, showSignIn, setSearch, navigate]);
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -54,15 +41,17 @@ const Header = () => {
               Login
             </Button>
           </SignedOut>
-          <SignedIn>
-            {user?.unsafeMetadata?.role === "recruiter" && (
-              <Link to="/post-job">
-                <Button variant="destructive" className="rounded-full">
-                  <PenBox size={20} className="mr-2"/>
-                  Post a Job
-                </Button>
-              </Link>
-            )}
+          <SignedIn
+          >
+                {user?.unsafeMetadata?.role === "recruiter" &&(
+
+                  <Link to="/post-job">
+              <Button variant="destructive" className="rounded-full">
+                <PenBox size={20} className="mr-2"/>
+                Post a Job</Button>
+                </Link>
+                  )
+                }
             <UserButton
               afterSignOutUrl="/"
               appearance={{
@@ -81,7 +70,10 @@ const Header = () => {
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
           onClick={handleOverlayClick}
         >
-          <SignIn />
+          <SignIn
+            signUpForceRedirectUrl="/onboarding"
+            fallbackRedirectUrl="/onboarding"
+          />
         </div>
       )}
     </>
