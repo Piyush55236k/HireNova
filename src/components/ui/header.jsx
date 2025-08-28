@@ -7,7 +7,6 @@ import {
   SignedOut,
   UserButton,
   useUser,
-  useClerk,
 } from '@clerk/clerk-react';
 import { PenBox } from 'lucide-react';
 
@@ -15,14 +14,15 @@ const Header = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const [search, setSearch] = useSearchParams();
   const { user } = useUser();
-  const { clerk } = useClerk();
 
+  // Show modal if URL contains ?sign-in=true
   useEffect(() => {
     if (search.get('sign-in') === 'true') {
       setShowSignIn(true);
     }
   }, [search]);
 
+  // Allow Escape key to close modal
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -36,15 +36,7 @@ const Header = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showSignIn]);
 
-  useEffect(() => {
-    const unsubscribe = clerk.addListener('user', () => {
-      setShowSignIn(false);
-      setSearch({});
-      window.location.href = '/onboarding';
-    });
-    return () => unsubscribe();
-  }, [clerk]);
-
+  // Close modal when clicking outside the SignIn box
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       setShowSignIn(false);
@@ -89,6 +81,7 @@ const Header = () => {
         </div>
       </nav>
 
+      {/* Sign-in Modal */}
       {showSignIn && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300"
@@ -97,8 +90,7 @@ const Header = () => {
           aria-modal="true"
         >
           <SignIn
-            signUpForceRedirectUrl="/onboarding"
-            fallbackRedirectUrl="/onboarding"
+            redirectUrl="/onboarding"
           />
         </div>
       )}
