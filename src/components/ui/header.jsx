@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { href, Link, useSearchParams } from 'react-router-dom';
+import {  Link, useSearchParams } from 'react-router-dom';
 import { Button } from './button';
 import { SignIn, SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 import {BriefcaseBusiness, Heart, PenBox} from 'lucide-react';
@@ -67,10 +67,7 @@ const Header = () => {
       {showSignIn && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-2 z-50"
         onClick={handleoverlayClick}>
-          <SignIn 
-          signUpForceRedirectUrl='/onboarding'
-          fallbackRedirectUrl='/onboarding'
-          />
+          <SignIn/>
       </div>)}
     </ >
   )
