@@ -8,9 +8,9 @@ const Header = () => {
   const [search , setSearch] = useSearchParams();
   const { user } = useUser();
   useEffect(() => {
-    if (search.get('sign-in') === 'true') {
-      setShowSignIn(true);
-    }
+    // if (search.get('sign-in') === 'true') {
+    //   setShowSignIn(true);
+    // }
   },[search]);
   const handleoverlayClick= (e) => {
     if (e.target === e.currentTarget) {
