@@ -27,7 +27,7 @@ const LandingPage = () => {
         </p>
       </section>
 
-      <div className='flex gap-6 justify-center sm:flex sm:flex-col'>
+      <div className='flex gap-6 justify-center md:flex md:flex-col'>
         <Link to='/jobs'>
           <Button variant='blue' size='xl'>Find Jobs</Button>
         </Link>
