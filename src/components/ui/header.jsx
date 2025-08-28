@@ -1,101 +1,79 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { href, Link, useSearchParams } from 'react-router-dom';
 import { Button } from './button';
-import {
-  SignIn,
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useUser,
-} from '@clerk/clerk-react';
-import { PenBox } from 'lucide-react';
-
+import { SignIn, SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
+import {BriefcaseBusiness, Heart, PenBox} from 'lucide-react';
 const Header = () => {
-  const [showSignIn, setShowSignIn] = useState(false);
-  const [search, setSearch] = useSearchParams();
+  const [showSignIn , setShowSignIn] = useState(false);
+  const [search , setSearch] = useSearchParams();
   const { user } = useUser();
-
-  // Show modal if URL contains ?sign-in=true
   useEffect(() => {
     if (search.get('sign-in') === 'true') {
       setShowSignIn(true);
     }
-  }, [search]);
-
-  // Allow Escape key to close modal
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setShowSignIn(false);
-        setSearch({});
-      }
-    };
-    if (showSignIn) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSignIn]);
-
-  // Close modal when clicking outside the SignIn box
-  const handleOverlayClick = (e) => {
+  },[search]);
+  const handleoverlayClick= (e) => {
     if (e.target === e.currentTarget) {
       setShowSignIn(false);
-      setSearch({});
+      setSearch({})
     }
-  };
 
+  }
   return (
     <>
-      <nav className="py-4 flex justify-between items-center px-6">
-        <Link to="/">
-          <img src="logo.png" alt="JobBoard logo" className="h-10" />
+      <nav className='py-4 flex justify-between items-center'>
+        <Link>
+          <img src="logo.png" alt="logo" className='h-30' />
         </Link>
-
-        <div className="flex gap-6 items-center">
+        <div className='flex gap-8'>
           <SignedOut>
-            <Button variant="outline" onClick={() => setShowSignIn(true)}>
-              Login
-            </Button>
+            <Button variant="outline" onClick={()=>setShowSignIn(true)}>Login</Button>
           </SignedOut>
-
           <SignedIn>
-            <div className="flex items-center gap-4">
-              {user?.unsafeMetadata?.role === 'recruiter' && (
-                <Link to="/post-job">
-                  <Button variant="destructive" className="rounded-full flex items-center">
-                    <PenBox size={20} className="mr-2" />
-                    Post a Job
-                  </Button>
+                {user?.unsafeMetadata?.role === "recruiter" &&(
+
+                  <Link to="/post-job">
+              <Button variant="destructive" className="rounded-full">
+                <PenBox size={20} className="mr-2"/>
+                Post a Job</Button>
                 </Link>
-              )}
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: 'h-10 w-10',
-                  },
-                }}
-              />
-            </div>
+                  )
+                }
+            <UserButton
+            appearance={{
+                elements: {
+                  avatarBox: 'h-20 w-20',
+                },
+              }}
+              >
+                    <UserButton.MenuItems>
+                      <UserButton.Link 
+                      label='My Jobs'
+                      labelIcon={<BriefcaseBusiness size={15} />}
+                    href="/my-jobs"
+                      />
+                      <UserButton.Link 
+                      label='Saved Jobs'
+                      labelIcon={<Heart size={15} />}
+                    href="/saved-jobs"
+                      />
+                    </UserButton.MenuItems>
+
+            </UserButton>
           </SignedIn>
         </div>
       </nav>
 
-      {/* Sign-in Modal */}
       {showSignIn && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300"
-          onClick={handleOverlayClick}
-          tabIndex={-1}
-          aria-modal="true"
-        >
-          <SignIn
-            redirectUrl="/onboarding"
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-2 z-50"
+        onClick={handleoverlayClick}>
+          <SignIn 
+          signUpForceRedirectUrl='/onboarding'
+          fallbackRedirectUrl='/onboarding'
           />
-        </div>
-      )}
-    </>
-  );
-};
+      </div>)}
+    </ >
+  )
+}
 
-export default Header;
+export default Header
