@@ -67,7 +67,7 @@ const Header = () => {
       {showSignIn && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-2 z-50"
         onClick={handleoverlayClick}>
-          <SignIn/>
+          <SignedIn/>
       </div>)}
     </ >
   )
