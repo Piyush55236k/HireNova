@@ -29,7 +29,8 @@ const Header = () => {
           <SignedOut>
             <Button variant="outline" onClick={()=>setShowSignIn(true)}>Login</Button>
           </SignedOut>
-          <SignedIn>
+          <SignedIn 
+          >
                 {user?.unsafeMetadata?.role === "recruiter" &&(
 
                   <Link to="/post-job">
