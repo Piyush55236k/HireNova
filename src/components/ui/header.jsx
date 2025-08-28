@@ -76,20 +76,22 @@ const Header = () => {
       {showSignIn && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
           <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="relative bg-white rounded-lg shadow-xl">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
               <button
                 onClick={handleCloseModal}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10 text-xl font-bold"
               >
                 ✕
               </button>
               <SignIn 
+                routing="virtual"
                 afterSignInUrl="/onboarding"
                 afterSignUpUrl="/onboarding"
                 appearance={{
                   elements: {
-                    card: "shadow-none border-0",
-                    rootBox: "w-full"
+                    card: "shadow-none border-0 w-full",
+                    rootBox: "w-full",
+                    formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white",
                   }
                 }}
               />
