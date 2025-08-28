@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from './button';
 import {
   SignIn,
@@ -13,7 +13,8 @@ import { BriefcaseBusiness, Heart, PenBox } from 'lucide-react';
 const Header = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const [search, setSearch] = useSearchParams();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (search.get('sign-in') === 'true') {
@@ -21,13 +22,15 @@ const Header = () => {
     }
   }, [search]);
 
-  // Clean up URL and close modal when user signs in
+  // Handle redirect to onboarding after successful sign-in
   useEffect(() => {
-    if (user && search.get('sign-in') === 'true') {
+    if (isLoaded && user && showSignIn) {
       setShowSignIn(false);
       setSearch({});
+      // Navigate to onboarding page
+      navigate('/onboarding');
     }
-  }, [user, search, setSearch]);
+  }, [user, isLoaded, showSignIn, setSearch, navigate]);
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -77,10 +80,8 @@ const Header = () => {
           onClick={handleOverlayClick}
         >
           <SignIn
-            signUpForceRedirectUrl="/onboarding"
-            fallbackRedirectUrl="/onboarding"
-            afterSignInUrl="/onboarding"
-            afterSignUpUrl="/onboarding"
+            routing="hash"
+            redirectUrl={window.location.origin}
           />
         </div>
       )}
