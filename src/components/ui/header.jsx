@@ -85,8 +85,7 @@ const Header = () => {
               </button>
               <SignIn 
                 routing="virtual"
-                afterSignInUrl="/onboarding"
-                afterSignUpUrl="/onboarding"
+                fallbackRedirectUrl="/onboarding"
                 appearance={{
                   elements: {
                     card: "shadow-none border-0 w-full",
