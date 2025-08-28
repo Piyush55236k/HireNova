@@ -27,8 +27,10 @@ const Header = () => {
     if (isLoaded && user && showSignIn) {
       setShowSignIn(false);
       setSearch({});
-      // Navigate to onboarding page
-      navigate('/onboarding');
+      // Small delay to ensure state updates
+      setTimeout(() => {
+        navigate('/onboarding');
+      }, 100);
     }
   }, [user, isLoaded, showSignIn, setSearch, navigate]);
 
@@ -79,10 +81,7 @@ const Header = () => {
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
           onClick={handleOverlayClick}
         >
-          <SignIn
-            routing="hash"
-            redirectUrl={window.location.origin}
-          />
+          <SignIn />
         </div>
       )}
     </>
