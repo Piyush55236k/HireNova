@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "question": "What is HireNova?",
+    "answer": "HireNova is a modern job portal platform that connects talented job seekers with top employers. We provide a seamless experience for finding your dream job or hiring the perfect candidate for your company."
+  },
+  {
+    "id": 2,
+    "question": "How do I create an account on HireNova?",
+    "answer": "Simply click on the 'Sign Up' button on our homepage. You can register as either a job seeker or an employer. Fill in your basic information, verify your email, and you're ready to start your journey with HireNova."
+  },
+  {
+    "id": 3,
+    "question": "Is HireNova free to use for job seekers?",
+    "answer": "Yes! HireNova is completely free for job seekers. You can search jobs, apply to positions, create your profile, and use all our job seeker features at no cost."
+  },
+  {
+    "id": 4,
+    "question": "How do I apply for jobs on HireNova?",
+    "answer": "Browse through our job listings, click on any position that interests you, and hit the 'Apply Now' button. You can apply with your HireNova profile or upload a custom resume for specific positions."
+  },
+  {
+    "id": 5,
+    "question": "Can I save jobs for later?",
+    "answer": "Absolutely! Click the bookmark icon on any job listing to save it to your 'Saved Jobs' section. You can access all your saved jobs from your dashboard anytime."
+  },
+  {
+    "id": 6,
+    "question": "How do employers post jobs on HireNova?",
+    "answer": "Employers can click 'Post a Job' from the main navigation, fill in the job details including title, description, requirements, and salary range, then publish the listing to start receiving applications."
+  },
+  {
+    "id": 7,
+    "question": "What are the costs for employers?",
+    "answer": "We offer flexible pricing plans for employers. Basic job postings start at competitive rates, with premium features available for enhanced visibility and candidate screening tools."
+  },
+  {
+    "id": 8,
+    "question": "How does HireNova protect my personal information?",
+    "answer": "We take privacy seriously. Your personal information is encrypted and stored securely. We never share your data with third parties without your explicit consent, and you have full control over your profile visibility."
+  },
+  {
+    "id": 9,
+    "question": "Can I edit my profile after creating it?",
+    "answer": "Yes! You can update your profile, resume, skills, and preferences at any time through your dashboard. Keeping your profile updated helps you get better job matches."
+  },
+  {
+    "id": 10,
+    "question": "How do I track my job applications?",
+    "answer": "Your dashboard includes an 'Applications' section where you can view all jobs you've applied to, their status, and any updates from employers. You'll also receive email notifications for important updates."
+  },
+  {
+    "id": 11,
+    "question": "What should I do if I forgot my password?",
+    "answer": "Click on 'Forgot Password' on the login page, enter your email address, and we'll send you a secure link to reset your password. The link expires after 24 hours for security."
+  },
+  {
+    "id": 12,
+    "question": "Does HireNova have a mobile app?",
+    "answer": "Currently, HireNova is optimized for mobile browsers and works seamlessly on all devices. We're working on dedicated mobile apps for iOS and Android, coming soon!"
+  },
+  {
+    "id": 13,
+    "question": "How can I contact HireNova support?",
+    "answer": "You can reach our support team through the 'Contact Us' page, email us at support@hirenova.com, or use the live chat feature available 24/7 on our website."
+  },
+  {
+    "id": 14,
+    "question": "Can I get job recommendations based on my profile?",
+    "answer": "Yes! Our smart matching algorithm analyzes your skills, experience, and preferences to suggest relevant job opportunities. Make sure your profile is complete for the best recommendations."
+  },
+  {
+    "id": 15,
+    "question": "How long do job postings stay active?",
+    "answer": "Standard job postings remain active for 30 days. Employers can renew, edit, or close postings at any time through their dashboard. Premium listings may have extended visibility periods."
+  }
+]
