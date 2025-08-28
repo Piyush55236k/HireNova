@@ -25,11 +25,9 @@ const Header = () => {
     }
   }, [user, isLoaded, showSignIn, setSearch, navigate]);
 
-  const handleoverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      setShowSignIn(false);
-      setSearch({})
-    }
+  const handleCloseModal = () => {
+    setShowSignIn(false);
+    setSearch({});
   }
 
   return (
@@ -76,9 +74,27 @@ const Header = () => {
       </nav>
 
       {showSignIn && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-          onClick={handleoverlayClick}>
-          <SignIn />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="relative bg-white rounded-lg shadow-xl">
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+              >
+                ✕
+              </button>
+              <SignIn 
+                afterSignInUrl="/onboarding"
+                afterSignUpUrl="/onboarding"
+                appearance={{
+                  elements: {
+                    card: "shadow-none border-0",
+                    rootBox: "w-full"
+                  }
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
     </>
