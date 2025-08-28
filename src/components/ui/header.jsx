@@ -21,6 +21,14 @@ const Header = () => {
     }
   }, [search]);
 
+  // Clean up URL and close modal when user signs in
+  useEffect(() => {
+    if (user && search.get('sign-in') === 'true') {
+      setShowSignIn(false);
+      setSearch({});
+    }
+  }, [user, search, setSearch]);
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       setShowSignIn(false);
@@ -41,17 +49,15 @@ const Header = () => {
               Login
             </Button>
           </SignedOut>
-          <SignedIn
-          >
-                {user?.unsafeMetadata?.role === "recruiter" &&(
-
-                  <Link to="/post-job">
-              <Button variant="destructive" className="rounded-full">
-                <PenBox size={20} className="mr-2"/>
-                Post a Job</Button>
-                </Link>
-                  )
-                }
+          <SignedIn>
+            {user?.unsafeMetadata?.role === "recruiter" && (
+              <Link to="/post-job">
+                <Button variant="destructive" className="rounded-full">
+                  <PenBox size={20} className="mr-2"/>
+                  Post a Job
+                </Button>
+              </Link>
+            )}
             <UserButton
               afterSignOutUrl="/"
               appearance={{
@@ -73,6 +79,8 @@ const Header = () => {
           <SignIn
             signUpForceRedirectUrl="/onboarding"
             fallbackRedirectUrl="/onboarding"
+            afterSignInUrl="/onboarding"
+            afterSignUpUrl="/onboarding"
           />
         </div>
       )}
