@@ -9,9 +9,10 @@ import Onboarding from "./pages/onboarding";
 import JobListing from "./pages/job-listing";
 import JobPage from "./pages/job";
 import PostJob from "./pages/post-job";
-import SavedJobs from "./pages/saved-job";
+import SavedJobs from "./pages/saved-job"; 
 import MyJobs from "./pages/my-jobs";
 import ProtectedRoute from "./components/ui/protected-route";
+import ErrorBoundary from "./components/ui/error-boundary";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -78,11 +79,17 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <RouterProvider router={router} />
-      </ThemeProvider>
-    </ClerkProvider>
+    <ErrorBoundary>
+      <ClerkProvider 
+        publishableKey={PUBLISHABLE_KEY}
+        afterSignInUrl="/onboarding"
+        afterSignUpUrl="/onboarding"
+      >
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </ClerkProvider>
+    </ErrorBoundary>
   );
 }
 
