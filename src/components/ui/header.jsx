@@ -85,6 +85,12 @@ const Header = () => {
               <SignIn 
                 routing="virtual"
                 fallbackRedirectUrl="/onboarding"
+                appearance={{
+                  elements: {
+                    card: "shadow-none border-0",
+                    rootBox: "w-full"
+                  }
+                }}
               />
             </div>
           </div>
