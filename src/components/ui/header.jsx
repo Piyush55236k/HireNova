@@ -13,7 +13,12 @@ import { BriefcaseBusiness, Heart, PenBox } from 'lucide-react';
 const Header = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const [search, setSearch] = useSearchParams();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
+
+  // Debug logs inside the component
+  console.log('Clerk key:', import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+  console.log('User:', user);
+  console.log('Clerk loaded:', isLoaded);
 
   useEffect(() => {
     if (search.get('sign-in') === 'true') {
@@ -87,8 +92,5 @@ const Header = () => {
     </>
   );
 };
-
-console.log('Clerk key:', import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-console.log('User:', user);
 
 export default Header;
