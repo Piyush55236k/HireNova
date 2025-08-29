@@ -82,8 +82,8 @@ function App() {
     <ErrorBoundary>
       <ClerkProvider 
         publishableKey={PUBLISHABLE_KEY}
-        afterSignInUrl="/onboarding"
-        afterSignUpUrl="/onboarding"
+        signInFallbackRedirectUrl="/onboarding"
+        signUpForceRedirectUrl="/onboarding"
       >
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
           <RouterProvider router={router} />
