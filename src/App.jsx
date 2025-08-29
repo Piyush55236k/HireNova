@@ -1,6 +1,7 @@
 import React from "react";
-import { ThemeProvider } from "@/components/ui/theme-provider"; // Fixed import path
+import { ThemeProvider } from "@/components/ui/theme-provider";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { ClerkProvider } from "@clerk/clerk-react";
 import "./App.css";
 import AppLayout from "./layouts/app-layout";
 import LandingPage from "./pages/landing";
@@ -8,9 +9,11 @@ import Onboarding from "./pages/onboarding";
 import JobListing from "./pages/job-listing";
 import JobPage from "./pages/job";
 import PostJob from "./pages/post-job";
-import SavedJobs from "./pages/saved-job";
+import SavedJobs from "./pages/saved-jobs";
 import MyJobs from "./pages/my-jobs";
 import ProtectedRoute from "./components/ui/protected-route";
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const router = createBrowserRouter([
   {
@@ -23,55 +26,49 @@ const router = createBrowserRouter([
       },
       {
         path: "/onboarding",
-        element: 
-        (
+        element: (
           <ProtectedRoute>
-          <Onboarding />
+            <Onboarding />
           </ProtectedRoute>
         ),
       },
       {
         path: "/jobs",
-       element: 
-        (
+        element: (
           <ProtectedRoute>
-          <JobListing />
+            <JobListing />
           </ProtectedRoute>
         ),
       },
       {
         path: "/job/:id",
-        element: 
-        (
+        element: (
           <ProtectedRoute>
-          <JobPage />
+            <JobPage />
           </ProtectedRoute>
         ),
       },
       {
         path: "/post-job",
-        element: 
-        (
+        element: (
           <ProtectedRoute>
-          <PostJob/>
+            <PostJob />
           </ProtectedRoute>
         ),
       },
       {
         path: "/saved-jobs",
-        element: 
-        (
+        element: (
           <ProtectedRoute>
-          <SavedJobs />
+            <SavedJobs />
           </ProtectedRoute>
         ),
       },
       {
         path: "/my-jobs",
-        element: 
-        (
+        element: (
           <ProtectedRoute>
-          <MyJobs />
+            <MyJobs />
           </ProtectedRoute>
         ),
       },
@@ -81,9 +78,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </ClerkProvider>
   );
 }
 
