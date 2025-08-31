@@ -27,6 +27,8 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/onboarding" replace />;
   }
 
+  // If authenticated and has profile, render children
+  return children;
 };
 
 export default ProtectedRoute;

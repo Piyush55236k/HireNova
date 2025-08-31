@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # HireNova 🚀
 
 A modern, professional job portal built with React, Vite, and Supabase. Connect job seekers with recruiters through an intuitive, beautiful interface.
@@ -151,3 +152,6 @@ If you like this project, please give it a ⭐ on GitHub!
 **Built with ❤️ by [Piyush Pandey](https://github.com/Piyush55236k)**
 
 *Making job searching and recruiting easier, one connection at a time.*
+=======
+
+>>>>>>> fb735cd633f91c1b40efc116fa68407cfb6988ba
