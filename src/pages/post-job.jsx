@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import useFetch from "@/hooks/use-fetch";
-import { useUser } from "@clerk/clerk-react";
+import { useSupabaseUser } from "../hooks/useSupabaseUser";
 import { zodResolver } from "@hookform/resolvers/zod";
 import MDEditor from "@uiw/react-md-editor";
 import { State } from "country-state-city";
@@ -33,8 +33,12 @@ const schema = z.object({
 });
 
 const PostJob = () => {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useSupabaseUser();
   const navigate = useNavigate();
+
+  console.log("PostJob - User:", user);
+  console.log("PostJob - User role:", user?.user_metadata?.role);
+  console.log("PostJob - Is loaded:", isLoaded);
 
   const {
     register,
@@ -54,8 +58,15 @@ const PostJob = () => {
   } = useFetch(addNewJob);
 
   const onSubmit = (data) => {
+    if (!user?.id) {
+      console.error("User not loaded");
+      return;
+    }
+    
+    console.log("Form submission data:", data);
     fnCreateJob({
       ...data,
+      company_id: Number(data.company_id), // Ensure company_id is a number for database
       recruiter_id: user.id,
       isOpen: true,
     });
@@ -78,11 +89,16 @@ const PostJob = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
+  // Debug companies data
+  useEffect(() => {
+    console.log("Companies loaded:", companies);
+  }, [companies]);
+
   if (!isLoaded || loadingCompanies) {
     return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
   }
 
-  if (user?.unsafeMetadata?.role !== "recruiter") {
+  if (user?.user_metadata?.role !== "recruiter") {
     return <Navigate to="/jobs" />;
   }
 
@@ -132,16 +148,16 @@ const PostJob = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Company">
                     {field.value
-                      ? companies?.find((com) => com.id === Number(field.value))
+                      ? companies?.find((com) => com.id.toString() === field.value.toString())
                           ?.name
                       : "Company"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {companies?.map(({ name, id }) => (
-                      <SelectItem key={name} value={id}>
-                        {name}
+                    {companies?.map((company) => (
+                      <SelectItem key={company.id} value={company.id.toString()}>
+                        {company.name}
                       </SelectItem>
                     ))}
                   </SelectGroup>

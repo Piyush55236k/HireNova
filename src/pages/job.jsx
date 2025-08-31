@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { BarLoader } from "react-spinners";
 import MDEditor from "@uiw/react-md-editor";
 import { useParams } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useSupabaseUser } from "../hooks/useSupabaseUser";
 import { Briefcase, DoorClosed, DoorOpen, MapPinIcon } from "lucide-react";
 
 import {
@@ -20,7 +20,7 @@ import { getSingleJob, updateHiringStatus } from "@/api/apiJobs";
 
 const JobPage = () => {
   const { id } = useParams();
-  const { isLoaded, user } = useUser();
+  const { isLoaded, user } = useSupabaseUser();
 
   const {
     loading: loadingJob,
@@ -112,7 +112,7 @@ const JobPage = () => {
           job={job}
           user={user}
           fetchJob={fnJob}
-          applied={job?.applications?.find((ap) => ap.candidate_id === user.id)}
+          applied={job?.applications?.find((ap) => ap.candidate_id === user?.id)}
         />
       )}
       {loadingHiringStatus && <BarLoader width={"100%"} color="#36d7b7" />}

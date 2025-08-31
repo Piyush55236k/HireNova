@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useSupabaseUser } from "../hooks/useSupabaseUser";
 import { State } from "country-state-city";
 import { BarLoader } from "react-spinners";
 import useFetch from "@/hooks/use-fetch";
@@ -24,7 +24,7 @@ const JobListing = () => {
   const [location, setLocation] = useState("");
   const [company_id, setCompany_id] = useState("");
 
-  const { isLoaded } = useUser();
+  const { isLoaded } = useSupabaseUser();
 
   const {
     // loading: loadingCompanies,
@@ -42,17 +42,19 @@ const JobListing = () => {
     searchQuery,
   });
 
-  useEffect(() => {
-    if (isLoaded) {
-      fnCompanies();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded]);
+  console.log("JobListing - Current filters:", { location, company_id, searchQuery });
 
   useEffect(() => {
-    if (isLoaded) fnJobs();
+    console.log("JobListing - Fetching companies...");
+    fnCompanies();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, location, company_id, searchQuery]);
+  }, []);
+
+  useEffect(() => {
+    console.log("JobListing - Fetching jobs with filters:", { location, company_id, searchQuery });
+    fnJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, company_id, searchQuery]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -71,6 +73,12 @@ const JobListing = () => {
   if (!isLoaded) {
     return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
   }
+
+  console.log("Debug - Jobs data:", jobs);
+  console.log("Debug - Loading state:", loadingJobs);
+  console.log("Debug - Jobs length:", jobs?.length);
+  console.log("Debug - Companies data:", companies);
+  console.log("Debug - Companies length:", companies?.length);
 
   return (
     <div className="">
@@ -150,7 +158,6 @@ const JobListing = () => {
                 <JobCard
                   key={job.id}
                   job={job}
-                  savedInit={job?.saved?.length > 0}
                 />
               );
             })
