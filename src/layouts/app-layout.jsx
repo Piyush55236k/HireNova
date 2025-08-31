@@ -1,6 +1,5 @@
 import Header from "@/components/header";
 import { Outlet } from "react-router-dom";
-import DatabaseStatus from "@/components/DatabaseStatus";
 
 const AppLayout = () => {
   return (
@@ -10,7 +9,6 @@ const AppLayout = () => {
       <main>
         <Outlet />
       </main>
-      <DatabaseStatus />
     </div>
   );
 };
