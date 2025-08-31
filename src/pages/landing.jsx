@@ -18,21 +18,23 @@ import { Link } from "react-router-dom";
 
 const LandingPage = () => {
   return (
-    <main className="flex flex-col gap-10 sm:gap-20 py-10 sm:py-20">
-      <section className="text-center ">
-        <h1 className="flex flex-col items-center justify-center gradient-title font-extrabold text-4xl sm:text-6xl lg:text-8xl tracking-tighter py-4">
+        <main className="flex flex-col gap-10 sm:gap-20 py-10 sm:py-20 container mx-auto px-4">
+      {/* Hero Section */}
+      <section className="text-center">
+        <h1 className="flex flex-col items-center justify-center gradient-title text-4xl font-extrabold sm:text-6xl lg:text-8xl tracking-tighter py-4">
           Find Your Dream Job
           <span className="flex items-center gap-2 sm:gap-6">
-            and get
+            and get{" "}
             <img
               src="/logo.png"
-              className="h-14 sm:h-24 lg:h-32"
               alt="HireNova Logo"
+              className="h-14 sm:h-24 lg:h-32"
             />
+            hired
           </span>
         </h1>
-        <p className="text-gray-300 sm:mt-4 text-xs sm:text-xl">
-          Explore thousands of job listings or find the perfect candidate
+        <p className="text-gray-300 sm:mt-4 text-xs sm:text-xl max-w-3xl mx-auto">
+          Explore thousands of job opportunities or post your own. Your next career move starts here.
         </p>
       </section>
       <div className="flex gap-6 justify-center">

@@ -11,11 +11,18 @@ import MyJobs from "./pages/my-jobs";
 import SavedJobs from "./pages/saved-jobs";
 import JobPage from "./pages/job";
 import AuthPage from "./pages/auth";
+import SimpleAuth from "./pages/auth-test";
+import TestJobs from "./pages/jobs-test";
+import TestPostJob from "./pages/post-job-test";
+import TestOnboarding from "./pages/onboarding-test";
+import TestMyJobs from "./pages/my-jobs-test";
+import TestSavedJobs from "./pages/saved-jobs-test";
 import UserProfile from "./pages/user-profile";
 import "./App.css";
 
 const router = createBrowserRouter([
   {
+    path: "/",
     element: <AppLayout />,
     children: [
       {
@@ -24,59 +31,47 @@ const router = createBrowserRouter([
       },
       {
         path: "/auth",
+        element: <SimpleAuth />,
+      },
+      {
+        path: "/auth-real",
         element: <AuthPage />,
       },
       {
         path: "/onboarding",
-        element: <Onboarding />, // Remove ProtectedRoute wrapper for onboarding
+        element: <TestOnboarding />,
       },
       {
         path: "/jobs",
-        element: (
-          <ProtectedRoute>
-            <JobListing />
-          </ProtectedRoute>
-        ),
+        element: <TestJobs />,
+      },
+      {
+        path: "/jobs-real",
+        element: <JobListing />,
       },
       {
         path: "/post-job",
-        element: (
-          <ProtectedRoute>
-            <PostJob />
-          </ProtectedRoute>
-        ),
+        element: <TestPostJob />,
+      },
+      {
+        path: "/post-job-real",
+        element: <PostJob />,
       },
       {
         path: "/my-jobs",
-        element: (
-          <ProtectedRoute>
-            <MyJobs />
-          </ProtectedRoute>
-        ),
+        element: <TestMyJobs />,
       },
       {
         path: "/saved-jobs",
-        element: (
-          <ProtectedRoute>
-            <SavedJobs />
-          </ProtectedRoute>
-        ),
+        element: <TestSavedJobs />,
       },
       {
         path: "/profile",
-        element: (
-          <ProtectedRoute>
-            <UserProfile />
-          </ProtectedRoute>
-        ),
+        element: <UserProfile />,
       },
       {
         path: "/job/:id",
-        element: (
-          <ProtectedRoute>
-            <JobPage />
-          </ProtectedRoute>
-        ),
+        element: <JobPage />,
       },
   // ...existing code...
      
