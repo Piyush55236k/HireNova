@@ -27,7 +27,7 @@ const LandingPage = () => {
             <img
               src="/logo.png"
               className="h-14 sm:h-24 lg:h-32"
-              alt="Hirrd Logo"
+              alt="HireNova Logo"
             />
           </span>
         </h1>
