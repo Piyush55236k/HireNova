@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSupabaseUser } from "../hooks/useSupabaseUser";
+import { useSupabaseUser } from "@/hooks/useSupabaseUser";
 import { State } from "country-state-city";
 import { BarLoader } from "react-spinners";
 import useFetch from "@/hooks/use-fetch";
@@ -73,12 +73,6 @@ const JobListing = () => {
   if (!isLoaded) {
     return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
   }
-
-  console.log("Debug - Jobs data:", jobs);
-  console.log("Debug - Loading state:", loadingJobs);
-  console.log("Debug - Jobs length:", jobs?.length);
-  console.log("Debug - Companies data:", companies);
-  console.log("Debug - Companies length:", companies?.length);
 
   return (
     <div className="">

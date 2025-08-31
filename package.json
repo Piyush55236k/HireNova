@@ -1,13 +1,20 @@
 {
-  "name": "job-portal",
+  "name": "hirenova",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Professional job portal with modern UI and comprehensive features",
+  "homepage": "https://hirenova.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Piyush55236k/HireNova"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && vercel --prod"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

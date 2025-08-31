@@ -10,10 +10,6 @@ const useFetch = (cb, options = {}) => {
   const { user } = useSupabaseUser();
 
   const fn = async (...args) => {
-    console.log("useFetch - Starting fetch with callback:", cb.name);
-    console.log("useFetch - Options:", options);
-    console.log("useFetch - Args:", args);
-    
     setLoading(true);
     setError(null);
 
@@ -21,13 +17,7 @@ const useFetch = (cb, options = {}) => {
       const { data: { session } } = await supabase.auth.getSession();
       const supabaseAccessToken = session?.access_token;
       
-      console.log("useFetch - Got session token:", supabaseAccessToken ? 'present' : 'missing');
-      
       const response = await cb(supabaseAccessToken, options, ...args);
-      
-      console.log("useFetch - Callback response:", response);
-      console.log("useFetch - Response type:", typeof response);
-      console.log("useFetch - Response length:", response?.length);
       
       setData(response);
       setError(null);
@@ -36,7 +26,6 @@ const useFetch = (cb, options = {}) => {
       setError(error);
     } finally {
       setLoading(false);
-      console.log("useFetch - Fetch completed");
     }
   };
 

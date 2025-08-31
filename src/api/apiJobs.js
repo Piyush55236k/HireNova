@@ -1,19 +1,20 @@
 import { supabase, createAuthenticatedSupabaseClient } from "../utils/supabase";
 
 // Fetch Jobs
-export async function getJobs(token = null, params = {}, ...args) {
-  const { location, company_id, searchQuery } = params;
-  
-  console.log("Getting jobs, token:", token ? 'present' : 'missing');
-  console.log("Filters:", { location, company_id, searchQuery });
+// Get jobs from database
+export async function getJobs(token, { location, company_id, searchQuery } = {}) {
+  const supabase = await createClient(token);
   
   let query = supabase
     .from("jobs")
-    .select("*, company: companies(*)")
-    .eq("isOpen", true); // Only show open jobs
+    .select(`
+      *,
+      saved: saved_jobs(id),
+      company: companies (id, Name, Logo_URL, created_at)
+    `);
 
   if (location) {
-    query = query.eq("location", location);
+    query = query.ilike("location", `%${location}%`);
   }
 
   if (company_id) {
@@ -31,8 +32,6 @@ export async function getJobs(token = null, params = {}, ...args) {
     return null;
   }
 
-  console.log("Raw jobs data from DB:", data);
-
   // Transform company data in the jobs
   const transformedData = data?.map(job => ({
     ...job,
@@ -44,7 +43,6 @@ export async function getJobs(token = null, params = {}, ...args) {
     } : null
   }));
 
-  console.log("Transformed jobs data:", transformedData);
   return transformedData;
 }
 

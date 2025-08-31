@@ -11,12 +11,6 @@ import MyJobs from "./pages/my-jobs";
 import SavedJobs from "./pages/saved-jobs";
 import JobPage from "./pages/job";
 import AuthPage from "./pages/auth";
-import SimpleAuth from "./pages/auth-test";
-import TestJobs from "./pages/jobs-test";
-import TestPostJob from "./pages/post-job-test";
-import TestOnboarding from "./pages/onboarding-test";
-import TestMyJobs from "./pages/my-jobs-test";
-import TestSavedJobs from "./pages/saved-jobs-test";
 import UserProfile from "./pages/user-profile";
 import "./App.css";
 
@@ -31,50 +25,56 @@ const router = createBrowserRouter([
       },
       {
         path: "/auth",
-        element: <SimpleAuth />,
-      },
-      {
-        path: "/auth-real",
         element: <AuthPage />,
       },
       {
         path: "/onboarding",
-        element: <TestOnboarding />,
+        element: (
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/jobs",
-        element: <TestJobs />,
-      },
-      {
-        path: "/jobs-real",
         element: <JobListing />,
       },
       {
         path: "/post-job",
-        element: <TestPostJob />,
-      },
-      {
-        path: "/post-job-real",
-        element: <PostJob />,
+        element: (
+          <ProtectedRoute>
+            <PostJob />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/my-jobs",
-        element: <TestMyJobs />,
+        element: (
+          <ProtectedRoute>
+            <MyJobs />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/saved-jobs",
-        element: <TestSavedJobs />,
+        element: (
+          <ProtectedRoute>
+            <SavedJobs />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/profile",
-        element: <UserProfile />,
+        element: (
+          <ProtectedRoute>
+            <UserProfile />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/job/:id",
         element: <JobPage />,
       },
-  // ...existing code...
-     
     ],
   },
 ]);

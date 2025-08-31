@@ -1,9 +1,9 @@
 import { supabase, supabaseUrl, createAuthenticatedSupabaseClient } from "@/utils/supabase";
 
-// Fetch Companies
+// Get all companies
 export async function getCompanies(token) {
-  console.log("Getting companies, token:", token ? 'present' : 'missing');
-  
+  const supabase = await createClient(token);
+
   const { data, error } = await supabase
     .from("companies")
     .select("*");
@@ -13,25 +13,22 @@ export async function getCompanies(token) {
     return null;
   }
 
-  console.log("Raw companies data from DB:", data);
-
-  // Transform data to match frontend expectations
+  // Transform the data to match expected format
   const transformedData = data?.map(company => ({
     id: company.id,
     name: company.Name || company.name,
     logo_url: company.Logo_URL || company.logo_url,
-    created_at: company.created_at
+    created_at: company.created_at,
+    // Keep original field names as fallback
+    Name: company.Name,
+    Logo_URL: company.Logo_URL
   }));
 
-  console.log("Companies fetched and transformed:", transformedData);
   return transformedData;
 }
 
 // Add Company
 export async function addNewCompany(token, _, companyData) {
-  console.log("Adding new company, token:", token ? 'present' : 'missing');
-  console.log("Company data:", companyData);
-  
   // Use authenticated client for write operations
   const authenticatedSupabase = token ? createAuthenticatedSupabaseClient(token) : supabase;
   
