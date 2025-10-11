@@ -33,9 +33,9 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: chore: regenerate package-lock.json on linux
-          branch: regenerate/package-lock-linux
-          title: chore: regenerate package-lock.json on linux
+          commit-message: "chore: regenerate package-lock.json on linux"
+          branch: 'regenerate/package-lock-linux'
+          title: "chore: regenerate package-lock.json on linux"
           body: |
             This PR was created automatically to regenerate `package-lock.json` on a Linux runner so
             platform-specific optional dependencies (native binaries) are resolved correctly for
