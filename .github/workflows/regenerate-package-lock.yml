@@ -1,0 +1,44 @@
+name: Regenerate package-lock.json on Linux
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  regenerate:
+    name: Regenerate package-lock on ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Clean and install (Linux)
+        run: |
+          echo "Removing node_modules and package-lock.json to regenerate on Linux"
+          rm -rf node_modules package-lock.json
+          npm i
+
+      - name: Run build to verify
+        run: |
+          npm run build
+
+      - name: Commit package-lock.json and create PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: chore: regenerate package-lock.json on linux
+          branch: regenerate/package-lock-linux
+          title: chore: regenerate package-lock.json on linux
+          body: |
+            This PR was created automatically to regenerate `package-lock.json` on a Linux runner so
+            platform-specific optional dependencies (native binaries) are resolved correctly for
+            CI (Vercel) which runs on Linux.
+          labels: automated
