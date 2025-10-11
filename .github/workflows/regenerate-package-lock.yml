@@ -65,8 +65,11 @@ jobs:
             echo "No changes to package-lock.json; skipping commit and PR creation."
           else
             git commit -m "chore: regenerate package-lock.json on linux"
-            echo "Pushing branch regenerate/package-lock-linux to origin"
-            git push -u origin regenerate/package-lock-linux
+            echo "Remote branch tip (before push):"; git rev-parse origin/regenerate/package-lock-linux || true
+            echo "Pushing branch regenerate/package-lock-linux to origin (force)"
+            # fetch remote branch in case it exists and then force push our generated branch
+            git fetch origin regenerate/package-lock-linux || true
+            git push -u origin regenerate/package-lock-linux --force
             echo "no_changes=false" >> $GITHUB_OUTPUT
           fi
 
