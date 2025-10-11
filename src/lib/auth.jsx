@@ -10,11 +10,51 @@ export const AuthProvider = ({ children }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const s = supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session ?? undefined);
-      setUser(mapSupabaseUserToClerkUser(data.session?.user));
-      setIsLoaded(true);
-    });
+    let mounted = true;
+
+    // If the user was redirected back from an OAuth provider, Supabase encodes
+    // the session in the URL fragment (hash). Parse it and store the session
+    // so the app can read it. Then remove the fragment to avoid leaking tokens.
+    const init = async () => {
+      try {
+        const { data: parsed, error: parseError } = await supabase.auth.getSessionFromUrl();
+        if (parseError) {
+          // non-fatal: continue to normal getSession
+          console.warn("supabase: getSessionFromUrl() returned error:", parseError.message || parseError);
+        }
+
+        if (parsed?.session) {
+          if (mounted) {
+            setSession(parsed.session);
+            setUser(mapSupabaseUserToClerkUser(parsed.session.user));
+            setIsLoaded(true);
+          }
+
+          // Remove URL fragment (#access_token=...) for security/cleanliness
+          try {
+            if (window?.location?.hash) {
+              const cleanUrl = window.location.href.split('#')[0] + window.location.search;
+              window.history.replaceState({}, document.title, cleanUrl);
+            }
+          } catch (err) {
+            // ignore replaceState failures
+            console.warn('Could not clear auth fragment from URL', err);
+          }
+        }
+      } catch (err) {
+        console.warn('Error while parsing session from URL', err);
+      }
+
+      // Always ensure we read the current stored session (if any)
+      const { data } = await supabase.auth.getSession();
+      if (mounted) {
+        setSession(data.session ?? undefined);
+        setUser(mapSupabaseUserToClerkUser(data.session?.user));
+        setIsLoaded(true);
+      }
+    };
+
+    init();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       setSession(currentSession ?? undefined);
@@ -23,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     });
 
     return () => {
+      mounted = false;
       listener?.subscription?.unsubscribe && listener.subscription.unsubscribe();
     };
   }, []);
