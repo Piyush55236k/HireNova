@@ -29,10 +29,6 @@ jobs:
           rm -rf node_modules package-lock.json
           npm i
 
-      - name: Run build to verify
-        run: |
-          npm run build
-
       - name: Commit package-lock.json and create PR
         uses: peter-evans/create-pull-request@v5
         with:
