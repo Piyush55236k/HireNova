@@ -2,6 +2,9 @@ name: Regenerate package-lock.json on Linux
 
 on:
   workflow_dispatch: {}
+  push:
+    branches:
+      - 'regenerate/package-lock-linux-trigger'
 
 jobs:
   regenerate:
