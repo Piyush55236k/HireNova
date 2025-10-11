@@ -31,8 +31,58 @@ jobs:
       - name: Clean and install (Linux)
         run: |
           echo "Removing node_modules and package-lock.json to regenerate on Linux"
+          echo "========= BEFORE: package-lock.json checksum (if exists) ========="
+          if [ -f package-lock.json ]; then sha256sum package-lock.json || true; fi
+          echo "========= REMOVING node_modules and package-lock.json ========="
           rm -rf node_modules package-lock.json
           npm i
+          echo "========= AFTER: package-lock.json checksum (if exists) ========="
+          if [ -f package-lock.json ]; then sha256sum package-lock.json || true; fi
+
+      - name: Show git status and diff (post-install)
+        run: |
+          echo "Git current branch:"; git branch --show-current || true
+          echo "Listing files:"; ls -la | sed -n '1,200p'
+          echo "Staged changes (if any):"; git status --porcelain || true
+
+      - name: Commit & push package-lock.json if changed
+        id: commit
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
+          # Create or switch to the branch we'll push
+          if git rev-parse --verify regenerate/package-lock-linux >/dev/null 2>&1; then
+            git checkout regenerate/package-lock-linux
+          else
+            git checkout -b regenerate/package-lock-linux
+          fi
+
+          git add package-lock.json || true
+
+          # If there are staged changes, commit and push. Otherwise mark changed=false
+          if git diff --staged --quiet; then
+            echo "no_changes=true" >> $GITHUB_OUTPUT
+            echo "No changes to package-lock.json; skipping commit and PR creation."
+          else
+            git commit -m "chore: regenerate package-lock.json on linux"
+            echo "Pushing branch regenerate/package-lock-linux to origin"
+            git push -u origin regenerate/package-lock-linux
+            echo "no_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR (only if package-lock changed)
+        if: steps.commit.outputs.no_changes == 'false'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: regenerate package-lock.json on linux"
+          branch: 'regenerate/package-lock-linux'
+          title: "chore: regenerate package-lock.json on linux"
+          body: |
+            This PR was created automatically to regenerate `package-lock.json` on a Linux runner so
+            platform-specific optional dependencies (native binaries) are resolved correctly for
+            CI (Vercel) which runs on Linux.
+          labels: automated
 
       - name: Commit package-lock.json and create PR
         uses: peter-evans/create-pull-request@v5
