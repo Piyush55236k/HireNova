@@ -1,5 +1,9 @@
 name: Regenerate package-lock.json on Linux
 
+permissions:
+  contents: write
+  pull-requests: write
+
 on:
   workflow_dispatch: {}
   push:
@@ -16,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Use Node.js 18
         uses: actions/setup-node@v4
