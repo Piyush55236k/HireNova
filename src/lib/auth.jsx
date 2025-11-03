@@ -17,27 +17,60 @@ export const AuthProvider = ({ children }) => {
     // so the app can read it. Then remove the fragment to avoid leaking tokens.
     const init = async () => {
       try {
-        const { data: parsed, error: parseError } = await supabase.auth.getSessionFromUrl();
-        if (parseError) {
-          // non-fatal: continue to normal getSession
-          console.warn("supabase: getSessionFromUrl() returned error:", parseError.message || parseError);
+        const href = typeof window !== 'undefined' ? window.location.href : '';
+        const hash = typeof window !== 'undefined' ? window.location.hash || '' : '';
+
+        let parsedSession = undefined;
+        let parseError = undefined;
+
+        // 1) PKCE flow (?code=...) – preferred in supabase-js v2
+        if (href.includes('code=') && typeof supabase.auth.exchangeCodeForSession === 'function') {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(href);
+          parseError = error;
+          parsedSession = data?.session;
+        }
+        // 2) Implicit flow (#access_token=...) – some providers return tokens in hash
+        else if (hash.includes('access_token=')) {
+          if (typeof supabase.auth.getSessionFromUrl === 'function') {
+            const { data, error } = await supabase.auth.getSessionFromUrl();
+            parseError = error;
+            parsedSession = data?.session;
+          } else {
+            // Fallback: manually parse and set session
+            try {
+              const params = new URLSearchParams(hash.replace(/^#/, ''));
+              const access_token = params.get('access_token');
+              const refresh_token = params.get('refresh_token');
+              if (access_token && refresh_token && typeof supabase.auth.setSession === 'function') {
+                const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+                parseError = error;
+                parsedSession = data?.session;
+              }
+            } catch (e) {
+              parseError = e;
+            }
+          }
         }
 
-        if (parsed?.session) {
+        if (parseError) {
+          // Non-fatal: continue to normal getSession
+          console.warn('supabase: auth redirect parse returned error:', parseError?.message || parseError);
+        }
+
+        if (parsedSession) {
           if (mounted) {
-            setSession(parsed.session);
-            setUser(mapSupabaseUserToClerkUser(parsed.session.user));
+            setSession(parsedSession);
+            setUser(mapSupabaseUserToClerkUser(parsedSession.user));
             setIsLoaded(true);
           }
 
-          // Remove URL fragment (#access_token=...) for security/cleanliness
+          // Remove URL fragment for security/cleanliness
           try {
             if (window?.location?.hash) {
               const cleanUrl = window.location.href.split('#')[0] + window.location.search;
               window.history.replaceState({}, document.title, cleanUrl);
             }
           } catch (err) {
-            // ignore replaceState failures
             console.warn('Could not clear auth fragment from URL', err);
           }
         }
