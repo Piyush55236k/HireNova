@@ -79,20 +79,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: regenerate package-lock.json on linux"
-          branch: 'regenerate/package-lock-linux'
-          title: "chore: regenerate package-lock.json on linux"
-          body: |
-            This PR was created automatically to regenerate `package-lock.json` on a Linux runner so
-            platform-specific optional dependencies (native binaries) are resolved correctly for
-            CI (Vercel) which runs on Linux.
-          labels: automated
-
-      - name: Commit package-lock.json and create PR
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: regenerate package-lock.json on linux"
-          branch: 'regenerate/package-lock-linux'
+          branch: 'regenerate/package-lock-linux'     # head branch
+          base: 'main'                                # explicitly set the base branch
           title: "chore: regenerate package-lock.json on linux"
           body: |
             This PR was created automatically to regenerate `package-lock.json` on a Linux runner so
