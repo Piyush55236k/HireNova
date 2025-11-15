@@ -157,13 +157,31 @@ export const SignIn = ({ signUpForceRedirectUrl, fallbackRedirectUrl, onClose })
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
 
-  const redirectTo = signUpForceRedirectUrl || fallbackRedirectUrl || window.location.origin;
+  const buildRedirect = (input) => {
+    try {
+      // Prefer provided path first, falling back to onboarding path
+      const value = input || "/onboarding";
+      // Ensure absolute URL (Supabase requires absolute redirect URLs)
+      return new URL(value, window.location.origin).toString();
+    } catch {
+      return window.location.origin;
+    }
+  };
+
+  const redirectTo = buildRedirect(signUpForceRedirectUrl || fallbackRedirectUrl);
 
   const signInWithEmail = async (e) => {
     e?.preventDefault();
     setLoading(true);
     setMsg(null);
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: redirectTo,
+        // shouldCreateUser defaults to true; keeping explicit can help clarity
+        shouldCreateUser: true,
+      },
+    });
     setLoading(false);
     if (error) setMsg(error.message);
     else setMsg("Check your email for the sign-in link.");
@@ -172,7 +190,14 @@ export const SignIn = ({ signUpForceRedirectUrl, fallbackRedirectUrl, onClose })
   const signInWithProvider = async (provider) => {
     setLoading(true);
     setMsg(null);
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo,
+        // Forces PKCE flow when applicable
+        flowType: "pkce",
+      },
+    });
     setLoading(false);
     if (error) setMsg(error.message);
   };
