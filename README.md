@@ -60,6 +60,7 @@ npm run build
 ## Documentation
 
 - **[API Documentation](./API_DOCUMENTATION.md)**: Comprehensive API endpoint documentation with request/response examples
+- **[Quick API Reference](./docs/QUICK_API_REFERENCE.md)**: Quick reference guide for API endpoints
 
 ## Project Structure
 
