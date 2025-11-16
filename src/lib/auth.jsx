@@ -2,7 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase";
 
 // Minimal auth context to mimic the parts of Clerk the app uses.
-const AuthContext = createContext({ user: undefined, session: undefined, isLoaded: false, isSignedIn: false });
+const AuthContext = createContext({
+  user: undefined,
+  session: undefined,
+  role: undefined,
+  isLoaded: false,
+  isSignedIn: false,
+  updateRole: async () => {},
+});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(undefined);
@@ -101,8 +108,24 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  const role = user?.unsafeMetadata?.role;
+
+  // Expose a helper to update role and immediately reflect it client-side
+  const updateRole = async (nextRole) => {
+    if (!nextRole || !session) return { error: new Error('No session or role provided') };
+    const { error, data } = await supabase.auth.updateUser({ data: { role: nextRole } });
+    if (!error) {
+      // Optimistically update local user state for immediate UI feedback
+      setUser((prev) => {
+        if (!prev) return prev;
+        return { ...prev, unsafeMetadata: { ...prev.unsafeMetadata, role: nextRole } };
+      });
+    }
+    return { error, data };
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, isLoaded, isSignedIn: !!session }}>
+    <AuthContext.Provider value={{ user, session, role, isLoaded, isSignedIn: !!session, updateRole }}>
       {children}
     </AuthContext.Provider>
   );
@@ -130,13 +153,12 @@ function mapSupabaseUserToClerkUser(suUser) {
 // Hooks and small components mimic Clerk API used in the project
 export const useUser = () => {
   const ctx = useContext(AuthContext);
-  // for compatibility return { user, isLoaded, isSignedIn }
-  return { user: ctx.user, isLoaded: ctx.isLoaded, isSignedIn: ctx.isSignedIn };
+  return { user: ctx.user, role: ctx.role, isLoaded: ctx.isLoaded, isSignedIn: ctx.isSignedIn };
 };
 
 export const useSession = () => {
   const ctx = useContext(AuthContext);
-  return { session: ctx.session };
+  return { session: ctx.session, updateRole: ctx.updateRole };
 };
 
 export const SignedIn = ({ children }) => {

@@ -1,4 +1,4 @@
-import { useUser } from "@/lib/auth";
+import { useUser, useSession } from "@/lib/auth";
 import { supabase } from "@/utils/supabase";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -6,30 +6,30 @@ import { useEffect } from "react";
 import { BarLoader } from "react-spinners";
 
 const Onboarding = () => {
-  const { user, isLoaded } = useUser();
+  const { user, role, isLoaded } = useUser();
+  const { updateRole } = useSession();
   const navigate = useNavigate();
 
   const navigateUser = (currRole) => {
     navigate(currRole === "recruiter" ? "/post-job" : "/jobs");
   };
 
-  const handleRoleSelection = async (role) => {
+  const handleRoleSelection = async (nextRole) => {
     try {
-      // Update the Supabase user's user_metadata.role so our auth shim picks it up
-      const { error } = await supabase.auth.updateUser({ data: { role } });
+      const { error } = await updateRole(nextRole);
       if (error) throw error;
-      console.log(`Role updated to: ${role}`);
-      navigateUser(role);
+      console.log(`Role updated to: ${nextRole}`);
+      navigateUser(nextRole);
     } catch (err) {
       console.error("Error updating role:", err);
     }
   };
 
   useEffect(() => {
-    if (user?.unsafeMetadata?.role) {
-      navigateUser(user.unsafeMetadata.role);
+    if (role) {
+      navigateUser(role);
     }
-  }, [user]);
+  }, [role]);
 
   if (!isLoaded) {
     return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
