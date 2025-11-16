@@ -271,8 +271,8 @@ export const SignIn = ({ onClose, redirectTo }) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+    <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+      <h2 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">
         {isSignUp ? "Sign Up" : "Sign In"}
       </h2>
 
@@ -283,7 +283,7 @@ export const SignIn = ({ onClose, redirectTo }) => {
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
             disabled={isLoading}
           />
@@ -296,7 +296,7 @@ export const SignIn = ({ onClose, redirectTo }) => {
               placeholder="Enter your password (leave empty for magic link)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isLoading}
             />
           </div>
@@ -313,17 +313,17 @@ export const SignIn = ({ onClose, redirectTo }) => {
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-gray-300 dark:border-gray-600" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">Or continue with</span>
+          <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or continue with</span>
         </div>
       </div>
 
       <button
         onClick={() => handleOAuthSignIn("google")}
         disabled={isLoading}
-        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
       >
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
           <path
@@ -349,7 +349,7 @@ export const SignIn = ({ onClose, redirectTo }) => {
       <div className="mt-4 text-center">
         <button
           onClick={() => setIsSignUp(!isSignUp)}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
           disabled={isLoading}
         >
           {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
@@ -357,7 +357,11 @@ export const SignIn = ({ onClose, redirectTo }) => {
       </div>
 
       {message && (
-        <div className={`mt-4 p-3 rounded ${message.includes('Check your email') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        <div className={`mt-4 p-3 rounded ${
+          message.includes('Check your email') 
+            ? 'bg-green-100 dark:bg-green-800/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800' 
+            : 'bg-red-100 dark:bg-red-800/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+        }`}>
           {message}
         </div>
       )}
@@ -365,7 +369,7 @@ export const SignIn = ({ onClose, redirectTo }) => {
       {onClose && (
         <button
           onClick={onClose}
-          className="mt-4 w-full text-gray-600 hover:text-gray-800"
+          className="mt-4 w-full text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
         >
           Close
         </button>
