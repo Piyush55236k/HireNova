@@ -157,7 +157,15 @@ export const SignIn = ({ signUpForceRedirectUrl, fallbackRedirectUrl, onClose })
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
 
-  const redirectTo = signUpForceRedirectUrl || fallbackRedirectUrl || window.location.origin;
+  // Default redirect path after sign-in: prefer explicit props, otherwise send users
+  // to the onboarding route so they land inside the app after successful auth.
+  // Using window.location.origin alone sometimes results in an unexpected host/port
+  // (developer environments can vary), so include an explicit path to keep behavior
+  // consistent across environments.
+  const redirectTo =
+    signUpForceRedirectUrl ||
+    fallbackRedirectUrl ||
+    `${window.location.origin}/onboarding`;
 
   const signInWithEmail = async (e) => {
     e?.preventDefault();
