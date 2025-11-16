@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { BarLoader } from "react-spinners";
 
 const Account = () => {
-  const { user, isLoaded } = useUser();
+  const { user, role, isLoaded } = useUser();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -98,7 +98,7 @@ const Account = () => {
     <div className="p-8 max-w-xl">
       <h1 className="text-3xl font-bold mb-4">Account</h1>
       <div className="mb-4">Email: {user?.email}</div>
-      <div className="mb-4">Role: {user?.unsafeMetadata?.role || "not set"}</div>
+      <div className="mb-4">Role: {role || "not set"}</div>
 
       <div className="mb-6">
         <label className="block mb-2 font-medium">Display name</label>

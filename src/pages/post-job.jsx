@@ -33,7 +33,7 @@ const schema = z.object({
 });
 
 const PostJob = () => {
-  const { user, isLoaded } = useUser();
+  const { user, role, isLoaded } = useUser();
   const navigate = useNavigate();
 
   const {
@@ -87,7 +87,7 @@ const PostJob = () => {
     return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
   }
 
-  if (user?.unsafeMetadata?.role !== "recruiter") {
+  if (role !== "recruiter") {
     return <Navigate to="/jobs" />;
   }
 
