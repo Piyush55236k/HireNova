@@ -12,6 +12,7 @@ import MyJobs from "./pages/my-jobs";
 import SavedJobs from "./pages/saved-jobs";
 import JobPage from "./pages/job";
 import Account from "./pages/account";
+import AuthCallback from "./pages/auth/callback";
 
 import "./App.css";
 
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <LandingPage />,
+      },
+      {
+        path: "/auth/callback",
+        element: <AuthCallback />,
       },
       {
         path: "/account",

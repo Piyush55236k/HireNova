@@ -1,354 +1,492 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase";
 
-// Minimal auth context to mimic the parts of Clerk the app uses.
+// Complete auth context using Supabase patterns
 const AuthContext = createContext({
-  user: undefined,
-  session: undefined,
-  role: undefined,
-  isLoaded: false,
+  user: null,
+  session: null,
+  role: null,
+  isLoading: true,
   isSignedIn: false,
+  signIn: async () => {},
+  signInWithOAuth: async () => {},
+  signOut: async () => {},
   updateRole: async () => {},
 });
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(undefined);
-  const [session, setSession] = useState(undefined);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
-    // If the user was redirected back from an OAuth provider, Supabase encodes
-    // the session in the URL fragment (hash). Parse it and store the session
-    // so the app can read it. Then remove the fragment to avoid leaking tokens.
-    const init = async () => {
+    // Get initial session
+    const getInitialSession = async () => {
       try {
-        const href = typeof window !== 'undefined' ? window.location.href : '';
-        const hash = typeof window !== 'undefined' ? window.location.hash || '' : '';
-
-        let parsedSession = undefined;
-        let parseError = undefined;
-
-        // 1) PKCE flow (?code=...) – preferred in supabase-js v2
-        if (href.includes('code=') && typeof supabase.auth.exchangeCodeForSession === 'function') {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(href);
-          parseError = error;
-          parsedSession = data?.session;
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
         }
-        // 2) Implicit flow (#access_token=...) – some providers return tokens in hash
-        else if (hash.includes('access_token=')) {
-          if (typeof supabase.auth.getSessionFromUrl === 'function') {
-            const { data, error } = await supabase.auth.getSessionFromUrl();
-            parseError = error;
-            parsedSession = data?.session;
-          } else {
-            // Fallback: manually parse and set session
-            try {
-              const params = new URLSearchParams(hash.replace(/^#/, ''));
-              const access_token = params.get('access_token');
-              const refresh_token = params.get('refresh_token');
-              if (access_token && refresh_token && typeof supabase.auth.setSession === 'function') {
-                const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
-                parseError = error;
-                parsedSession = data?.session;
-              }
-            } catch (e) {
-              parseError = e;
-            }
-          }
-        }
-
-        if (parseError) {
-          // Non-fatal: continue to normal getSession
-          console.warn('supabase: auth redirect parse returned error:', parseError?.message || parseError);
-        }
-
-        if (parsedSession) {
-          if (mounted) {
-            setSession(parsedSession);
-            setUser(mapSupabaseUserToClerkUser(parsedSession.user));
-            setIsLoaded(true);
-          }
-
-          // Remove URL fragment for security/cleanliness
-          try {
-            if (window?.location?.hash) {
-              const cleanUrl = window.location.href.split('#')[0] + window.location.search;
-              window.history.replaceState({}, document.title, cleanUrl);
-            }
-          } catch (err) {
-            console.warn('Could not clear auth fragment from URL', err);
-          }
-        }
-      } catch (err) {
-        console.warn('Error while parsing session from URL', err);
-      }
-
-      // Always ensure we read the current stored session (if any)
-      const { data } = await supabase.auth.getSession();
-      if (mounted) {
-        setSession(data.session ?? undefined);
-        setUser(mapSupabaseUserToClerkUser(data.session?.user));
-        setIsLoaded(true);
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    init();
+    getInitialSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-      setSession(currentSession ?? undefined);
-      setUser(mapSupabaseUserToClerkUser(currentSession?.user));
-      setIsLoaded(true);
-    });
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+
+        // Handle different auth events
+        if (event === 'SIGNED_IN') {
+          console.log('User signed in');
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed');
+        }
+      }
+    );
 
     return () => {
-      mounted = false;
-      listener?.subscription?.unsubscribe && listener.subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
-  const role = user?.unsafeMetadata?.role;
+  // Extract role from user metadata
+  const role = user?.user_metadata?.role || null;
 
-  // Expose a helper to update role and immediately reflect it client-side
-  const updateRole = async (nextRole) => {
-    if (!nextRole || !session) return { error: new Error('No session or role provided') };
-    const { error, data } = await supabase.auth.updateUser({ data: { role: nextRole } });
-    if (!error) {
-      // Optimistically update local user state for immediate UI feedback
-      setUser((prev) => {
-        if (!prev) return prev;
-        return { ...prev, unsafeMetadata: { ...prev.unsafeMetadata, role: nextRole } };
-      });
+  // Sign in with email/password or magic link
+  const signIn = async ({ email, password, options = {} }) => {
+    try {
+      setIsLoading(true);
+      
+      if (password) {
+        // Email/password sign in
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        return { data, error };
+      } else {
+        // Magic link sign in
+        const { data, error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            ...options,
+          },
+        });
+        return { data, error };
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { data: null, error };
+    } finally {
+      setIsLoading(false);
     }
-    return { error, data };
+  };
+
+  // Sign in with OAuth providers
+  const signInWithOAuth = async (provider, options = {}) => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          ...options,
+        },
+      });
+      
+      return { data, error };
+    } catch (error) {
+      console.error('OAuth sign in error:', error);
+      return { data: null, error };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Sign out
+  const signOut = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signOut();
+      return { error };
+    } catch (error) {
+      console.error('Sign out error:', error);
+      return { error };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update user role
+  const updateRole = async (newRole) => {
+    try {
+      if (!user || !session) {
+        return { error: new Error('No authenticated user') };
+      }
+
+      const { data, error } = await supabase.auth.updateUser({
+        data: { role: newRole }
+      });
+
+      if (!error) {
+        // Update local user state immediately
+        setUser(prev => prev ? {
+          ...prev,
+          user_metadata: {
+            ...prev.user_metadata,
+            role: newRole
+          }
+        } : null);
+      }
+
+      return { data, error };
+    } catch (error) {
+      console.error('Update role error:', error);
+      return { data: null, error };
+    }
+  };
+
+  const value = {
+    user,
+    session,
+    role,
+    isLoading,
+    isSignedIn: !!session && !!user,
+    signIn,
+    signInWithOAuth,
+    signOut,
+    updateRole,
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, isLoaded, isSignedIn: !!session, updateRole }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Map a Supabase user object to a shape similar to Clerk's user for compatibility.
-function mapSupabaseUserToClerkUser(suUser) {
-  if (!suUser) return undefined;
-
-  // Supabase stores metadata in user.user_metadata (client-writable) and app_metadata (server-managed)
-  const unsafeMetadata = suUser.user_metadata?.unsafeMetadata || suUser.user_metadata || {};
-  // If role is stored under app_metadata as well, merge it
-  if (suUser.app_metadata?.role && !unsafeMetadata.role) {
-    unsafeMetadata.role = suUser.app_metadata.role;
+// Hook to access auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  return context;
+};
 
-  return {
-    id: suUser.id,
-    email: suUser.email,
-    unsafeMetadata,
-    raw: suUser,
-  };
-}
-
-// Hooks and small components mimic Clerk API used in the project
+// Legacy compatibility hooks
 export const useUser = () => {
-  const ctx = useContext(AuthContext);
-  return { user: ctx.user, role: ctx.role, isLoaded: ctx.isLoaded, isSignedIn: ctx.isSignedIn };
+  const { user, role, isLoading, isSignedIn } = useAuth();
+  return { user, role, isLoaded: !isLoading, isSignedIn };
 };
 
 export const useSession = () => {
-  const ctx = useContext(AuthContext);
-  return { session: ctx.session, updateRole: ctx.updateRole };
+  const { session, updateRole } = useAuth();
+  return { session, updateRole };
 };
 
+// Conditional rendering components
 export const SignedIn = ({ children }) => {
-  const { isSignedIn, isLoaded } = useUser();
-  if (!isLoaded) return null;
+  const { isSignedIn, isLoading } = useAuth();
+  if (isLoading) return null;
   return isSignedIn ? children : null;
 };
 
 export const SignedOut = ({ children }) => {
-  const { isSignedIn, isLoaded } = useUser();
-  if (!isLoaded) return null;
+  const { isSignedIn, isLoading } = useAuth();
+  if (isLoading) return null;
   return !isSignedIn ? children : null;
 };
 
-// Minimal SignIn UI: open Supabase Hosted UI
-export const SignIn = ({ signUpForceRedirectUrl, fallbackRedirectUrl, onClose }) => {
+// Complete SignIn component using Supabase auth
+export const SignIn = ({ onClose, redirectTo }) => {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState(null);
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  
+  const { signIn, signInWithOAuth } = useAuth();
 
-  // Default redirect path after sign-in: prefer explicit props, otherwise send users
-  // to the onboarding route so they land inside the app after successful auth.
-  // Using window.location.origin alone sometimes results in an unexpected host/port
-  // (developer environments can vary), so include an explicit path to keep behavior
-  // consistent across environments.
-  const redirectTo =
-    signUpForceRedirectUrl ||
-    fallbackRedirectUrl ||
-    `${window.location.origin}/onboarding`;
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage("");
 
-  const signInWithEmail = async (e) => {
-    e?.preventDefault();
-    setLoading(true);
-    setMsg(null);
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
-    setLoading(false);
-    if (error) setMsg(error.message);
-    else setMsg("Check your email for the sign-in link.");
+    try {
+      const { data, error } = await signIn({ 
+        email, 
+        password: isSignUp ? undefined : password,
+        options: redirectTo ? { emailRedirectTo: redirectTo } : {}
+      });
+
+      if (error) {
+        setMessage(error.message);
+      } else if (!password) {
+        setMessage("Check your email for the magic link!");
+      }
+    } catch (error) {
+      setMessage("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const signInWithProvider = async (provider) => {
-    setLoading(true);
-    setMsg(null);
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
-    setLoading(false);
-    if (error) setMsg(error.message);
+  const handleOAuthSignIn = async (provider) => {
+    setIsLoading(true);
+    setMessage("");
+
+    try {
+      const { error } = await signInWithOAuth(provider, 
+        redirectTo ? { redirectTo } : {}
+      );
+      
+      if (error) {
+        setMessage(error.message);
+        setIsLoading(false);
+      }
+      // If successful, user will be redirected, so don't set loading to false
+    } catch (error) {
+      setMessage("OAuth sign in failed");
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="auth-modal p-6 bg-white rounded shadow w-96">
-      <h3 className="mb-4 text-lg font-semibold">Sign in</h3>
+    <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+      <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+        {isSignUp ? "Sign Up" : "Sign In"}
+      </h2>
 
-      <form onSubmit={signInWithEmail} className="mb-4">
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-2 p-2 border rounded"
-          required
-        />
-        <button disabled={loading} className="w-full p-2 bg-purple-600 text-white rounded">
-          {loading ? "Sending…" : "Send magic link"}
+      <form onSubmit={handleEmailAuth} className="space-y-4">
+        <div>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        {!isSignUp && (
+          <div>
+            <input
+              type="password"
+              placeholder="Enter your password (leave empty for magic link)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isLoading}
+            />
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isLoading || !email}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        >
+          {isLoading ? "Loading..." : isSignUp ? "Sign Up" : (password ? "Sign In" : "Send Magic Link")}
         </button>
       </form>
 
-      <div className="mb-3 text-center text-sm text-gray-500">or</div>
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or continue with</span>
+        </div>
+      </div>
 
-      <div className="flex flex-col gap-2">
+      <button
+        onClick={() => handleOAuthSignIn("google")}
+        disabled={isLoading}
+        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+      >
+        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+          <path
+            fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+          />
+        </svg>
+        Continue with Google
+      </button>
+
+      <div className="mt-4 text-center">
         <button
-          onClick={() => signInWithProvider("google")}
-          className="w-full p-2 border rounded flex items-center justify-center bg-transparent text-white hover:bg-gray-800"
-          disabled={loading}
+          onClick={() => setIsSignUp(!isSignUp)}
+          className="text-sm text-blue-600 hover:underline"
+          disabled={isLoading}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5 mr-2">
-            <path fill="#EA4335" d="M24 9.5c3.5 0 6.3 1.2 8.2 2.3l6-6C35.6 3.6 30.2 1.5 24 1.5 14.7 1.5 6.9 6.6 3 14l7.4 5.7C11.1 15 16.1 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.6H24v9h12.7c-.5 2.8-2 5.1-4.3 6.7l6.8 5.3c4-3.7 6.3-9.2 6.3-16.4z"/>
-            <path fill="#FBBC05" d="M10.4 28.3C9.6 26.4 9.1 24.3 9.1 22s.5-4.4 1.3-6.3L3 10c-2.8 4.9-2.8 11 0 15.9l7.4 5.4z"/>
-            <path fill="#34A853" d="M24 46.5c6.2 0 11.6-2 15.9-5.6l-7.6-6c-2.1 1.5-5 2.4-8.3 2.4-7.9 0-13-5.5-13.6-12.8L3 33.9C6.9 41.3 14.7 46.5 24 46.5z"/>
-          </svg>
-          Continue with Google
+          {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
         </button>
       </div>
 
-      {msg && <div className="mt-3 text-sm text-red-600">{msg}</div>}
+      {message && (
+        <div className={`mt-4 p-3 rounded ${message.includes('Check your email') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {message}
+        </div>
+      )}
 
-      <div className="mt-4 flex justify-end">
-        <button onClick={onClose} className="text-sm text-gray-600">Close</button>
-      </div>
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="mt-4 w-full text-gray-600 hover:text-gray-800"
+        >
+          Close
+        </button>
+      )}
     </div>
   );
 };
 
-// UserButton with real dropdown menu using context
+// UserButton component with dropdown menu
 const UserButtonContext = createContext({ open: false, toggle: () => {}, close: () => {} });
 
-export const UserButton = ({ children, appearance, avatarUrl, label }) => {
+export const UserButton = ({ children, avatarUrl, label }) => {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
   const ref = React.useRef(null);
 
-  const toggle = () => setOpen((v) => !v);
+  const toggle = () => setOpen(v => !v);
   const close = () => setOpen(false);
 
-  // close on outside click
+  // Close on outside click
   useEffect(() => {
-    const onClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false);
+    const handleClickOutside = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        close();
       }
     };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const initials = label ? label.charAt(0).toUpperCase() : "U";
+  const displayName = label || user?.email || 'User';
+  const initials = displayName.charAt(0).toUpperCase();
 
   return (
     <UserButtonContext.Provider value={{ open, toggle, close }}>
       <div className="relative inline-block" ref={ref}>
         <button
           onClick={toggle}
-          className="user-button-trigger w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border overflow-hidden"
+          className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border overflow-hidden hover:bg-gray-200 transition-colors"
           aria-haspopup="true"
           aria-expanded={open}
         >
           {avatarUrl ? (
-            <img src={avatarUrl} alt="avatar" className="w-10 h-10 object-cover" />
+            <img src={avatarUrl} alt="Avatar" className="w-10 h-10 object-cover" />
           ) : (
-            <span className="text-sm font-medium">{initials}</span>
+            <span className="text-sm font-medium text-gray-700">{initials}</span>
           )}
         </button>
-
         {children}
       </div>
     </UserButtonContext.Provider>
   );
 };
 
-// MenuItems wrapper: shows/hides based on context
 UserButton.MenuItems = ({ children }) => {
   const { open } = useContext(UserButtonContext);
   if (!open) return null;
+  
   return (
-    <div className="userbutton-menuitems absolute right-0 mt-2 w-56 bg-white border rounded shadow z-50">
-      {children}
+    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+      <div className="py-1">
+        {children}
+      </div>
     </div>
   );
 };
 
-// Link item inside menu
 UserButton.Link = ({ label, labelIcon, href }) => {
+  const { close } = useContext(UserButtonContext);
+  
   return (
-    <a href={href} className="userbutton-link flex items-center gap-2 p-3 hover:bg-gray-50 text-sm text-gray-700">
-      {labelIcon}
-      <span>{label}</span>
+    <a
+      href={href}
+      onClick={close}
+      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+    >
+      {labelIcon && <span className="mr-3 text-gray-400">{labelIcon}</span>}
+      {label}
     </a>
   );
 };
 
-// Action item inside menu (button). Supports default actions like sign-out/manage account.
 UserButton.Action = ({ label, onClick, labelIcon }) => {
   const { close } = useContext(UserButtonContext);
+  const { signOut: authSignOut } = useAuth();
 
-  const handle = async (e) => {
+  const handleClick = async (e) => {
+    e.preventDefault();
+    
     if (onClick) {
-      onClick(e);
-    } else if (label && label.toLowerCase().includes("sign")) {
-      // default sign out
+      await onClick(e);
+    } else if (label?.toLowerCase().includes('sign')) {
+      // Default sign out action
       try {
-        await supabase.auth.signOut();
-        window.location.href = "/";
-      } catch (err) {
-        console.error("Sign out error", err);
+        await authSignOut();
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Sign out error:', error);
       }
-    } else if (label && label.toLowerCase().includes("manage")) {
-      window.location.href = "/account";
+    } else if (label?.toLowerCase().includes('manage')) {
+      window.location.href = '/account';
     }
+    
     close();
   };
 
   return (
-    <button onClick={handle} className="userbutton-action w-full text-left p-3 hover:bg-gray-50 text-sm text-gray-700 flex items-center gap-3">
-      {labelIcon && <span className="text-gray-500">{labelIcon}</span>}
-      <span>{label}</span>
+    <button
+      onClick={handleClick}
+      className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+    >
+      {labelIcon && <span className="mr-3 text-gray-400">{labelIcon}</span>}
+      {label}
     </button>
   );
 };
 
 export default {
   AuthProvider,
+  useAuth,
   useUser,
   useSession,
   SignedIn,
